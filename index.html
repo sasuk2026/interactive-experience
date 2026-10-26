@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>沉浸式互动体验</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#12121a;--primary:#e91e63;--primary-glow:rgba(233,30,99,.3);--text:#f0f0f5;--text-muted:#888;--border:#2a2a3a;--success:#4caf50;--radius:16px;--transition:all .3s cubic-bezier(.4,0,.2,1)}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6}
+.container{max-width:600px;margin:0 auto;padding:20px}
+h1{text-align:center;font-size:2rem;margin:30px 0 10px;background:linear-gradient(135deg,var(--primary),#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--text-muted);margin-bottom:30px;font-size:.95rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;transition:var(--transition)}
+.card:hover{border-color:var(--primary);box-shadow:0 0 30px var(--primary-glow)}
+.step-label{display:inline-block;background:var(--primary);color:#fff;padding:4px 14px;border-radius:20px;font-size:.8rem;margin-bottom:12px;font-weight:600}
+h2{font-size:1.3rem;margin-bottom:16px;color:var(--text)}
+.option-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:16px}
+.option-btn{background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;cursor:pointer;transition:var(--transition);color:var(--text);font-size:.9rem;min-height:60px;display:flex;align-items:center;justify-content:center}
+.option-btn:hover{border-color:var(--primary);transform:translateY(-2px)}
+.option-btn.selected{border-color:var(--primary);background:rgba(233,30,99,.15);color:var(--primary)}
+.option-btn .emoji{font-size:1.5rem;display:block;margin-bottom:6px}
+.slider-group{margin:16px 0}
+.slider-label{display:flex;justify-content:space-between;margin-bottom:8px;font-size:.9rem}
+input[type=range]{width:100%;height:6px;-webkit-appearance:none;background:var(--border);border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:var(--primary);border-radius:50%;cursor:pointer;box-shadow:0 0 10px var(--primary-glow)}
+.nav-buttons{display:flex;gap:12px;margin-top:24px}
+.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:var(--transition)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:#c2185b;transform:translateY(-1px)}
+.btn-secondary{background:var(--bg);color:var(--text);border:2px solid var(--border)}
+.btn-secondary:hover{border-color:var(--primary)}
+.scene-display{min-height:200px;padding:20px;background:var(--bg);border-radius:12px;margin-bottom:20px;font-size:1.1rem;line-height:1.8}
+.ai-chat{position:fixed;bottom:20px;right:20px;z-index:1000}
+.chat-toggle{width:60px;height:60px;border-radius:50%;background:var(--primary);border:none;cursor:pointer;font-size:1.5rem;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px var(--primary-glow);transition:var(--transition)}
+.chat-toggle:hover{transform:scale(1.1)}
+.chat-panel{position:absolute;bottom:70px;right:0;width:340px;max-height:500px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:none;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.chat-panel.open{display:flex}
+.chat-header{padding:16px;background:var(--primary);color:#fff;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.chat-close{background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;max-height:300px}
+.chat-msg{margin-bottom:12px;padding:10px 14px;border-radius:12px;font-size:.9rem;max-width:85%}
+.chat-msg.ai{background:var(--bg);border:1px solid var(--border);align-self:flex-start}
+.chat-msg.user{background:var(--primary);color:#fff;align-self:flex-end;margin-left:auto}
+.chat-input-area{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);outline:none}
+.chat-send{background:var(--primary);border:none;border-radius:8px;padding:10px 16px;color:#fff;cursor:pointer;font-weight:600}
+.api-config{padding:16px;border-top:1px solid var(--border)}
+.api-config label{display:block;font-size:.8rem;color:var(--text-muted);margin-bottom:6px}
+.api-config input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);margin-bottom:10px;outline:none}
+.api-config button{width:100%;background:var(--success);color:#fff;border:none;border-radius:8px;padding:10px;cursor:pointer;font-weight:600}
+.progress-bar{display:flex;gap:8px;margin-bottom:30px;justify-content:center}
+.progress-dot{width:12px;height:12px;border-radius:50%;background:var(--border);transition:var(--transition)}
+.progress-dot.active{background:var(--primary);box-shadow:0 0 10px var(--primary-glow)}
+.selections-summary{margin-top:20px;padding:16px;background:var(--bg);border-radius:12px;font-size:.85rem;color:var(--text-muted)}
+.selections-summary h3{color:var(--text);margin-bottom:10px;font-size:1rem}
+.selection-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)}
+.selection-item:last-child{border:none}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .5s ease forwards}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>沉浸式互动体验</h1>
+<p class="subtitle">每个选择都可以更改 · 对话AI实时响应</p>
+<div class="progress-bar" id="progressBar"></div>
+<div id="stepsContainer"></div>
+<div class="nav-buttons">
+<button class="btn btn-secondary" id="prevBtn" onclick="prevStep()">上一步</button>
+<button class="btn btn-primary" id="nextBtn" onclick="nextStep()">下一步</button>
+</div>
+<div class="selections-summary" id="summary"></div>
+</div>
+<div class="ai-chat">
+<button class="chat-toggle" onclick="toggleChat()">💬</button>
+<div class="chat-panel" id="chatPanel">
+<div class="chat-header">
+<span>AI 伴侣对话</span>
+<button class="chat-close" onclick="toggleChat()">✕</button>
+</div>
+<div class="api-config" id="apiConfig">
+<label>OpenAI API Base URL</label>
+<input type="text" id="apiBase" placeholder="https://api.openai.com/v1">
+<label>API Key</label>
+<input type="password" id="apiKey" placeholder="sk-...">
+<button onclick="saveApiKey()">保存配置</button>
+</div>
+<div class="chat-messages" id="chatMessages"></div>
+<div class="chat-input-area">
+<input class="chat-input" id="chatInput" placeholder="输入消息..." onkeypress="if(event.key==='Enter')sendChat()">
+<button class="chat-send" onclick="sendChat()">发送</button>
+</div>
+</div>
+</div>
+<script>
+const steps=[
+{id:'age',label:'选择角色年龄',question:'请选择角色的年龄段',options:[{value:'young_adult',label:'年轻成人',emoji:'🧑'},{value:'adult',label:'成年',emoji:'👩'},{value:'mature',label:'成熟',emoji:'🧕'}]},
+{id:'feature',label:'角色特征',question:'选择你偏好的角色外貌特征',options:[{value:'petite',label:'娇小玲珑',emoji:'🌸'},{value:'athletic',label:'运动型',emoji:'💪'},{value:'curvy',label:'曲线迷人',emoji:'✨'},{value:'classic',label:'经典优雅',emoji:'🌹'}]},
+{id:'sensitivity',label:'敏感度设置',question:'调整角色的身体敏感度',sensitivity:true},
+{id:'scenario',label:'场景设定',question:'选择互动的场景氛围',options:[{value:'romantic',label:'浪漫之夜',emoji:'🌙'},{value:'passionate',label:'激情时刻',emoji:'🔥'},{value:'tender',label:'温柔亲密',emoji:'💕'},{value:'adventurous',label:'探索冒险',emoji:'🗝️'}]},
+{id:'activity',label:'互动环节',question:'选择当前进行的环节',options:[{value:'foreplay',label:'前戏调情',emoji:'💋'},{value:'intimate',label:'亲密接触',emoji:'🤗'},{value:'deep',label:'深入互动',emoji:'❤️'},{value:'aftercare',label:'温柔余韵',emoji:'🌅'}]},
+{id:'dialogue',label:'对话偏好',question:'你希望AI伴侣如何回应你',options:[{value:'sweet',label:'温柔甜美',emoji:'🍬'},{value:'spicy',label:'热情火辣',emoji:'🌶️'},{value:'gentle',label:'轻声细语',emoji:'🎐'},{value:'bold',label:'大胆直白',emoji:'💥'}]}
+];
+let currentStep=0;
+let selections={};
+let apiConfig={base:'',key:''};
+function init(){
+renderProgress();
+renderStep();
+loadFromStorage();
+}
+function renderProgress(){
+const bar=document.getElementById('progressBar');
+bar.innerHTML=steps.map((_,i)=>`<div class="progress-dot${i===currentStep?' active':''}"></div>`).join('');
+}
+function renderStep(){
+const step=steps[currentStep];
+const container=document.getElementById('stepsContainer');
+let html=`<div class="card fade-in"><span class="step-label">${step.label}</span><h2>${step.question}</h2>`;
+if(step.sensitivity){
+html+=`<div class="slider-group"><div class="slider-label"><span>敏感度</span><span id="sensitivityVal">${selections[step.id]||50}</span></div><input type="range" min="1" max="100" value="${selections[step.id]||50}" oninput="setSelection('${step.id}',this.value)"></div>`;
+}else{
+html+=`<div class="option-grid">`;
+step.options.forEach(opt=>{
+const selected=selections[step.id]===opt.value?'selected':'';
+html+=`<button class="option-btn ${selected}" onclick="setSelection('${step.id}','${opt.value}')"><span class="emoji">${opt.emoji}</span>${opt.label}</button>`;
+});
+html+=`</div>`;
+}
+html+=`</div>`;
+container.innerHTML=html;
+updateNav();
+updateSummary();
+}
+function setSelection(id,value){
+selections[id]=value;
+saveToStorage();
+renderStep();
+}
+function updateNav(){
+document.getElementById('prevBtn').style.visibility=currentStep===0?'hidden':'visible';
+document.getElementById('nextBtn').textContent=currentStep===steps.length-1?'完成':'下一步';
+}
+function nextStep(){
+if(currentStep<steps.length-1){
+currentStep++;
+renderProgress();
+renderStep();
+window.scrollTo({top:0,behavior:'smooth'});
+}
+}
+function prevStep(){
+if(currentStep>0){
+currentStep--;
+renderProgress();
+renderStep();
+window.scrollTo({top:0,behavior:'smooth'});
+}
+}
+function updateSummary(){
+const summary=document.getElementById('summary');
+if(Object.keys(selections).length===0){
+summary.innerHTML='';
+return;
+}
+let html='<h3>当前选择</h3>';
+const labels={age:'角色年龄',feature:'外貌特征',sensitivity:'敏感度',scenario:'场景',activity:'互动环节',dialogue:'对话风格'};
+for(const[id,val]of Object.entries(selections)){
+const opt=steps.find(s=>s.id===id)?.options?.find(o=>o.value===val);
+const display=opt?opt.label:val;
+html+=`<div class="selection-item"><span>${labels[id]||id}</span><span>${display}</span></div>`;
+}
+summary.innerHTML=html;
+}
+function toggleChat(){
+document.getElementById('chatPanel').classList.toggle('open');
+}
+function saveApiKey(){
+apiConfig.base=document.getElementById('apiBase').value.trim();
+apiConfig.key=document.getElementById('apiKey').value.trim();
+localStorage.setItem('apiConfig',JSON.stringify(apiConfig));
+alert('配置已保存');
+}
+function loadFromStorage(){
+const saved=localStorage.getItem('selections');
+if(saved)selections=JSON.parse(saved);
+const config=localStorage.getItem('apiConfig');
+if(config){
+apiConfig=JSON.parse(config);
+document.getElementById('apiBase').value=apiConfig.base||'';
+document.getElementById('apiKey').value=apiConfig.key||'';
+}
+}
+function saveToStorage(){
+localStorage.setItem('selections',JSON.stringify(selections));
+}
+async function sendChat(){
+const input=document.getElementById('chatInput');
+const msg=input.value.trim();
+if(!msg)return;
+if(!apiConfig.key){
+addMessage('请先在设置中填写API Key','ai');
+input.value='';
+return;
+}
+addMessage(msg,'user');
+input.value='';
+const systemPrompt=`你是一个沉浸式的AI伴侣，根据用户的以下设定进行对话：
+角色年龄:${selections.age||'未设定'}
+外貌特征:${selections.feature||'未设定'}
+敏感度:${selections.sensitivity||'未设定'}
+场景:${selections.scenario||'未设定'}
+当前环节:${selections.activity||'未设定'}
+对话风格:${selections.dialogue||'未设定'}
+请用${selections.dialogue||'温柔'}的风格，根据你的角色设定回应用户，让对话自然、有沉浸感。`
+try{
+const resp=await fetch(apiConfig.base+'/chat/completions',{
+method:'POST',
+headers:{'Content-Type':'application/json','Authorization':`Bearer ${apiConfig.key}`},
+body:JSON.stringify({model:'gpt-3.5-turbo',messages:[{role:'system',content:systemPrompt},{role:'user',content:msg}],max_tokens:300})
+});
+const data=await resp.json();
+addMessage(data.choices[0].message.content,'ai');
+}catch(e){
+addMessage('请求失败，请检查API配置','ai');
+}
+}
+function addMessage(text,role){
+const container=document.getElementById('chatMessages');
+const div=document.createElement('div');
+div.className=`chat-msg ${role}`;
+div.textContent=text;
+container.appendChild(div);
+container.scrollTop=container.scrollHeight;
+}
+init();
+</script>
+</body>
+</html>
